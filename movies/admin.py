@@ -1,7 +1,18 @@
 from django.contrib import admin
+from django.contrib.gis import forms
 from django.utils.safestring import mark_safe
 
 from .models import *
+from ckeditor_uploader.widgets import CKEditorUploadingWidget
+
+class MovieAdminForm(forms.ModelForm):
+    description = forms.CharField(label='Описание', widget=CKEditorUploadingWidget())
+    class Meta:
+        model = Movie
+        fields = '__all__'
+
+
+
 
 
 @admin.register(Catefory)
@@ -41,6 +52,7 @@ class MovieAdmin(admin.ModelAdmin):
     save_as = True
     """Для дублирование фильма"""
     list_editable = ('draft',)
+    form = MovieAdminForm
     # fields = ('title', ('actors', 'directors','genres'), ) """Уроки Django 3 - настройка админки django - урок 11"""
     readonly_fields = ('get_image', )
     fieldsets = (
