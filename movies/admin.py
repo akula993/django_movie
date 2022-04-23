@@ -5,14 +5,13 @@ from django.utils.safestring import mark_safe
 from .models import *
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 
+
 class MovieAdminForm(forms.ModelForm):
     description = forms.CharField(label='Описание', widget=CKEditorUploadingWidget())
+
     class Meta:
         model = Movie
         fields = '__all__'
-
-
-
 
 
 @admin.register(Catefory)
@@ -28,15 +27,18 @@ class ReviewInlines(admin.TabularInline):
     extra = 1
     readonly_fields = ('name', 'email')
 
+
 class MoavieShotsInlines(admin.TabularInline):
     """ Кадры из фильма на странице фильма """
     model = MoviesShots
     extra = 1
-    readonly_fields = ('get_image', )
+    readonly_fields = ('get_image',)
+
     def get_image(self, obj):
         return mark_safe(f'<img src={obj.image.url} width="100" height="110">')
 
     get_image.short_description = "Кадры"
+
 
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
@@ -52,15 +54,16 @@ class MovieAdmin(admin.ModelAdmin):
     save_as = True
     """Для дублирование фильма"""
     list_editable = ('draft',)
+    actions = ['publish', 'unpublish']
     form = MovieAdminForm
     # fields = ('title', ('actors', 'directors','genres'), ) """Уроки Django 3 - настройка админки django - урок 11"""
-    readonly_fields = ('get_image', )
+    readonly_fields = ('get_image',)
     fieldsets = (
         (None, {
             'fields': (('title', 'tagline'),)
         }),
         (None, {
-            'fields': ('description',('get_image', 'poster'))
+            'fields': ('description', ('get_image', 'poster'))
         }),
         (None, {
             'fields': (('year', 'world_premiere', 'country'),)
@@ -77,11 +80,35 @@ class MovieAdmin(admin.ModelAdmin):
         }),
     )
 
-
     def get_image(self, obj):
         return mark_safe(f'<img src={obj.poster.url} width="100" height="110">')
 
+    def unpublish(self, request, queryset):
+        """ Снять с публикации """
+        row_update = queryset.update(draft=True)
+        if row_update == 1:
+            massege_bit = '1 запесь обновлена'
+        else:
+            massege_bit = f"{row_update} записей были обновлены"
+        self.message_user(request, f'{massege_bit}')
+
+    def publish(self, request, queryset):
+        """ Опубликовать """
+        row_update = queryset.update(draft=False)
+        if row_update == 1:
+            massege_bit = '1 запесь обновлена'
+        else:
+            massege_bit = f"{row_update} записей были обновлены"
+        self.message_user(request, f'{massege_bit}')
+
+    publish.short_description = 'Опубликовать'
+    publish.allowed_permission = ('change',)
+
+    unpublish.short_description = 'Снять с публикации'
+    unpublish.allowed_permission = ('change',)
+
     get_image.short_description = "Постер"
+
 
 @admin.register(Reviews)
 class ReviewAdmin(admin.ModelAdmin):
@@ -103,7 +130,8 @@ class GanreAdmin(admin.ModelAdmin):
 class ActorAdmin(admin.ModelAdmin):
     """''' Актеры '''"""
     list_display = ('name', 'age', 'get_image')
-    readonly_fields = ('get_image', )
+    readonly_fields = ('get_image',)
+
     def get_image(self, obj):
         return mark_safe(f'<img src={obj.image.url} width="50" height="60">')
 
@@ -120,14 +148,15 @@ class RatingAdmin(admin.ModelAdmin):
 class MovieShotAdmin(admin.ModelAdmin):
     """ Кадры из фильма """
     list_display = ('title', 'movie', 'get_image')
-    readonly_fields = ('get_image', )
+    readonly_fields = ('get_image',)
+
     def get_image(self, obj):
         return mark_safe(f'<img src={obj.image.url} width="50" height="60">')
 
     get_image.short_description = "Изоброжение"
 
-admin.site.register(RatingStar)
 
+admin.site.register(RatingStar)
 
 admin.site.site_title = 'Django фильмы'
 admin.site.site_header = 'Django фильмы'
