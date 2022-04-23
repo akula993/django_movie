@@ -1,4 +1,4 @@
-#!/home/user/lassens/django_movie/venv/bin/python
+#!/home/gavr/Lessons/django_movie/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
